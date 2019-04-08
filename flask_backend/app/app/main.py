@@ -28,22 +28,6 @@ RecipeConstitution = db.Table("RecipeConstitution",
 
 # Set ORM
 class UserInfo(db.Model):
-    # / **
-    # *UserId: 16
-    # *name: 臧艺
-    # *phone: 15168212330
-    # *height: 173
-    # *weight: 22
-    # *sex: true
-    # *BirthDay: 2017 - 07 - 16
-    # T00: 00:00
-    # *labourIntensity: 优秀
-    # *HeadImage: null
-    # *constitution: 气虚质
-    # *score: 0
-    # *age: 0
-    # *Token: null
-    # * /
     __tablename__ = 'UserInfo'
     UserId = db.Column(db.Integer, primary_key=True)
     user_account = db.Column(db.String(45), unique=True)
@@ -94,18 +78,6 @@ class UserInfo(db.Model):
 
 
 class CateInfo(db.Model):
-    # / **
-    # *id: 113
-    # *name: 西餐3
-    # *titleImage: http: // ......
-    # *address: 杭州市拱墅区祥园路 - 道路
-    # *phone: 18857120152
-    # *category: 5
-    # *sales: 111
-    # *consumption: 22
-    # *discount: 满100减200
-    # *distance: 0
-    # * /
     __tablename__ = 'CateInfo'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
@@ -134,19 +106,6 @@ class CateInfo(db.Model):
 
 
 class RecipeInfo(db.Model):
-    # / **
-    # *id: 1
-    # *name: 食谱1
-    # *titleImage: http: //......
-    # *ConstitutionPercentage: 0
-    # *sales: 12
-    # *price: 66.00
-    # *Tags: ["清蒸", "爆炒"]
-    # *Restaurant_Name: 餐厅2
-    # *Restaurant_Address: 杭州市拱墅区拱墅区
-    # *distance: null
-    # *category: 3
-    # * /
     __tablename__ = 'RecipeInfo'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
@@ -284,6 +243,40 @@ class ConstitutionInfo(db.Model):
     name = db.Column(db.String(20))
 
 
+class Options(db.Model):
+    __tablename__ = "Options"
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(500))
+    question_id = db.Column(db.Integer, db.ForeignKey("Questions.id"))
+
+    def serialize(self):
+        return{
+            'OptionId': self.id,
+            'OptionContent': self.content,
+        }
+
+
+class Questions(db.Model):
+    __tablename__ = "Questions"
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(500))
+    is_professional = db.Column(db.Boolean)
+    options = db.relationship("Options", backref="questions")
+
+    def serialize(self):
+        option_list = []
+        options = Options.query.filter_by(question_id = self.id).all()
+        for option in options:
+            option_info = option.serialize()
+            option_list.append(option_info)
+
+        return{
+            'QuestionId': self.id,
+            'QuestionContent': self.content,
+            'Options': option_list,
+        }
+
+
 db.create_all()
 
 
@@ -353,139 +346,20 @@ def login():
 
 @app.route('/API/Question/GetQuestionExpressList', methods=['GET'])
 def question_list():
-    list_data = [{"QuestionId": 1, "QuestionContent": "您的饮食目标是？", "Options":
-        [{"OptionId":1,"OptionContent":"确保日常饮食三餐规律和营养均衡"},
-         {"OptionId":2,"OptionContent":"健身增肌"},
-         {"OptionId":3,"OptionContent":"减脂瘦身"},
-         {"OptionId":4,"OptionContent":"增加体重"}]},
-                 {"QuestionId": 2, "QuestionContent": "您的精神状况如何，有如下状况吗？", "Options":
-                     [{"OptionId":5,"OptionContent":"情绪稳定，性格平和"},
-                      {"OptionId":6,"OptionContent":"敏感喜欢猜忌"},
-                      {"OptionId":7,"OptionContent":"经常闷闷不乐"},
-                      {"OptionId":8,"OptionContent":"多愁善感，焦虑不安"},
-                      {"OptionId":9,"OptionContent":"精神总是紧张"},
-                      {"OptionId":10,"OptionContent":"容易疲劳"},
-                      {"OptionId":11,"OptionContent":"没有或不知道"}]},
-                 {"QuestionId":3,"QuestionContent":"您的大小便状况如何？有如下状况吗？","Options":
-                     [{"OptionId":12,"OptionContent":"便秘或大便干燥"},
-                      {"OptionId":13,"OptionContent":"大便溏薄或者黏腻、不成形"},
-                      {"OptionId":14,"OptionContent":"喝了冰的东西容易腹泻"},
-                      {"OptionId":15,"OptionContent":"没有或不知道"}]},
-                 {"QuestionId":4,"QuestionContent":"您的五官状况如何，有如下状况吗？","Options":
-                     [{"OptionId":16,"OptionContent":"眼睛经常出现红疹发痒和血丝"},
-                      {"OptionId":17,"OptionContent":"经常生痤疮"},
-                      {"OptionId":18,"OptionContent":"嘴里有异味"},
-                      {"OptionId":19,"OptionContent":"经常长痘痘"},
-                      {"OptionId":20,"OptionContent":"女性白带颜色发黄"},
-                      {"OptionId":21,"OptionContent":"容易呼吸短促，接不上气"},
-                      {"OptionId":22,"OptionContent":"没有或不知道"}]},
-                 {"QuestionId":5,"QuestionContent":"您的皮肤状况如何，有如下状况吗？","Options":
-                     [{"OptionId":23,"OptionContent":"皮肤一抓就红"},
-                      {"OptionId":24,"OptionContent":"容易出汗"},
-                      {"OptionId":25,"OptionContent":"面颊潮红或偏红"},
-                      {"OptionId":26,"OptionContent":"肌肤不滋润，干燥"},
-                      {"OptionId":27,"OptionContent":"没有或不知道"}]},
-                 {"QuestionId":6,"QuestionContent":"您的适应能力抵抗力如何？","Options":
-                     [{"OptionId":28,"OptionContent":"无故鼻塞流涕、打喷嚏"},
-                      {"OptionId":29,"OptionContent":"容易过敏"},
-                      {"OptionId":30,"OptionContent":"身体莫名其妙疼痛"},
-                      {"OptionId":31,"OptionContent":"经常手脚发凉"},
-                      {"OptionId":32,"OptionContent":"没有或不知道"}]},
-                 {"QuestionId":7,"QuestionContent":"您身体的整体状况如何？","Options":
-                     [{"OptionId":33,"OptionContent":"精力充沛"},
-                      {"OptionId":34,"OptionContent":"面色红润、目光有神"},
-                      {"OptionId":35,"OptionContent":"食欲很好"},
-                      {"OptionId":36,"OptionContent":"容易感冒"},
-                      {"OptionId":37,"OptionContent":"经常头昏眼花"},
-                      {"OptionId":38,"OptionContent":"经常上火，口干舌燥"},
-                      {"OptionId":39,"OptionContent":"经常腰酸腿软"},
-                      {"OptionId":40,"OptionContent":"没有或不知道"}]},
-                 {"QuestionId":8,"QuestionContent":"您还有哪些状况？","Options":
-                     [{"OptionId":41,"OptionContent":"总是觉得很累"},
-                      {"OptionId":42,"OptionContent":"特别容易掉头发"},
-                      {"OptionId":43,"OptionContent":"脸色晦暗、长色斑"},
-                      {"OptionId":44,"OptionContent":"额头总是油油的"},
-                      {"OptionId":45,"OptionContent":"嘴巴里有黏的感觉"},
-                      {"OptionId":46,"OptionContent":"没有或不知道"}]}]
+    normal_questions = Questions.query.filter_by(is_professional=False).all()
+    list_data = []
+    for question in normal_questions:
+        list_data.append(question.serialize())
+
     return jsonify({'HttpCode': 200, 'Message': 'Get questions list success', 'ListData': list_data})
 
 
 @app.route('/API/Question/GetQuestionProfessionList', methods=['POST'])
 def question_list_pro():
-    uid = request.form.get('UserId', 0)
-
-    list_data= [{"QuestionId":9,"QuestionContent":"您手脚发凉吗？","Options":
-        [{"OptionId":47,"OptionContent":"完全不"},
-         {"OptionId":48,"OptionContent":"有一点"},
-         {"OptionId":49,"OptionContent":"非常"}]},
-                {"QuestionId":10,"QuestionContent":"您感到怕冷、衣服比别人穿得多吗？","Options":
-                    [{"OptionId":50,"OptionContent":"完全不"},
-                     {"OptionId":51,"OptionContent":"有一点"},
-                     {"OptionId":52,"OptionContent":"非常"}]},
-                {"QuestionId": 11, "QuestionContent": "您感到手脚心发热吗？", "Options":
-                    [{"OptionId": 53, "OptionContent": "完全不"},
-                     {"OptionId": 54, "OptionContent": "有一点"},
-                     {"OptionId": 55, "OptionContent": "非常"}]},
-                {"QuestionId": 12, "QuestionContent": "您感到口干咽燥、总想喝水吗?", "Options":
-                    [{"OptionId": 56, "OptionContent": "完全不"},
-                     {"OptionId": 57, "OptionContent": "有一点"},
-                     {"OptionId": 58, "OptionContent": "非常"}]},
-                {"QuestionId": 13, "QuestionContent": "您容易气短（呼吸短促、接不上气）吗", "Options":
-                    [{"OptionId": 59, "OptionContent": "完全不"},
-                     {"OptionId": 60, "OptionContent": "有一点"},
-                     {"OptionId": 61, "OptionContent": "非常"}]},
-                {"QuestionId": 14, "QuestionContent": "您容易头晕或站起来时晕眩吗？", "Options":
-                    [{"OptionId": 62, "OptionContent": "完全不"},
-                     {"OptionId": 63, "OptionContent": "有一点"},
-                     {"OptionId": 64, "OptionContent": "非常"}]},
-                {"QuestionId": 15, "QuestionContent": "您感到身体沉重不轻松或不爽快吗？", "Options":
-                    [{"OptionId": 65, "OptionContent": "完全不"},
-                     {"OptionId": 66, "OptionContent": "有一点"},
-                     {"OptionId": 67, "OptionContent": "非常"}]},
-                {"QuestionId": 16, "QuestionContent": "您平时痰多，特别咽喉部总感到有痰堵着吗？", "Options":
-                    [{"OptionId": 68, "OptionContent": "完全不"},
-                     {"OptionId": 69, "OptionContent": "有一点"},
-                     {"OptionId": 70, "OptionContent": "非常"}]},
-                {"QuestionId": 17, "QuestionContent": "您感到口苦或嘴里有异味吗？", "Options":
-                    [{"OptionId": 71, "OptionContent": "完全不"},
-                     {"OptionId": 72, "OptionContent": "有一点"},
-                     {"OptionId": 73, "OptionContent": "非常"}]},
-                {"QuestionId": 18, "QuestionContent": "您容易生痤疮或疮疖吗？", "Options":
-                    [{"OptionId": 74, "OptionContent": "完全不"},
-                     {"OptionId": 75, "OptionContent": "有一点"},
-                     {"OptionId": 76, "OptionContent": "非常"}]},
-                {"QuestionId": 19, "QuestionContent": "您的皮肤在不知不觉中出现青紫瘀斑（皮下出血）吗？", "Options":
-                    [{"OptionId": 77, "OptionContent": "完全不"},
-                     {"OptionId": 78, "OptionContent": "有一点"},
-                     {"OptionId": 79, "OptionContent": "非常"}]},
-                {"QuestionId": 20, "QuestionContent": "您面色晦暗或容易出现褐斑吗？", "Options":
-                    [{"OptionId": 77, "OptionContent": "完全不"},
-                     {"OptionId": 78, "OptionContent": "有一点"},
-                     {"OptionId": 79, "OptionContent": "非常"}]},
-                {"QuestionId": 21, "QuestionContent": "您没有感冒时也会打喷嚏吗？", "Options":
-                    [{"OptionId": 77, "OptionContent": "完全不"},
-                     {"OptionId": 78, "OptionContent": "有一点"},
-                     {"OptionId": 79, "OptionContent": "非常"}]},
-                {"QuestionId": 22, "QuestionContent": "您有因季节变化、温度变化或异味等原因而咳喘的现象吗？", "Options":
-                    [{"OptionId": 77, "OptionContent": "完全不"},
-                     {"OptionId": 78, "OptionContent": "有一点"},
-                     {"OptionId": 79, "OptionContent": "非常"}]},
-                {"QuestionId": 23, "QuestionContent": "您多愁善感、感情脆弱吗？", "Options":
-                    [{"OptionId": 77, "OptionContent": "完全不"},
-                     {"OptionId": 78, "OptionContent": "有一点"},
-                     {"OptionId": 79, "OptionContent": "非常"}]},
-                {"QuestionId": 24, "QuestionContent": "您咽喉部有异物感，且吐之不出、咽之不下吗？", "Options":
-                    [{"OptionId": 77, "OptionContent": "完全不"},
-                     {"OptionId": 78, "OptionContent": "有一点"},
-                     {"OptionId": 79, "OptionContent": "非常"}]},
-                {"QuestionId": 25, "QuestionContent": "您精力充沛吗？", "Options":
-                    [{"OptionId": 77, "OptionContent": "完全不"},
-                     {"OptionId": 78, "OptionContent": "有一点"},
-                     {"OptionId": 79, "OptionContent": "非常"}]},
-                {"QuestionId": 26, "QuestionContent": "您能适应外界自然和社会环境的变化吗？", "Options":
-                    [{"OptionId": 77, "OptionContent": "完全不"},
-                     {"OptionId": 78, "OptionContent": "有一点"},
-                     {"OptionId": 79, "OptionContent": "非常"}]}]
+    pro_questions = Questions.query.filter_by(is_professional=True).all()
+    list_data = []
+    for question in pro_questions:
+        list_data.append(question.serialize())
     return jsonify({'HttpCode': 200, 'Message': 'Get questions list success', 'ListData': list_data})
 
 
@@ -551,16 +425,6 @@ def professional_answer_process():
             else:
                 body_model = user.constitution
                 break
-
-    #body_model = '特禀体质的人会出现打喷嚏、流清涕，就是因为卫气虚不能抵御外邪所致。中医认为，“肾为先天之本”，特禀质养生时就应以健脾、补肾气为主，以增强卫外功能。特禀质，这是一类体质特殊的人群。 ⑤对外界环境适应能力：适应能力差，如过敏体质者对过敏季节适应能力差，易引发宿疾。 体质分析 由于先天禀赋不足、遗传等因素，或环境因素，药物因素等的不同影响，故特异质的形体特征、心理特征、常见表现、发病倾向等方面存在诸多差异，病机各异。'
-    if body_model == '阳虚质':
-        body_model = '气郁质'
-    if body_model == '阴虚质':
-        body_model = '气郁质'
-    if body_model == '气虚质':
-        body_model = '气郁质'
-    if body_model == '痰湿质':
-        body_model = '湿热质'
 
     user.constitution = body_model
     db.session.add(user)
